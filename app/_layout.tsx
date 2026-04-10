@@ -20,6 +20,14 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="contenedor/[id]"
+          options={{ title: "Detalle contenedor" }}
+        />
+        <Stack.Screen
+          name="contenedor-form"
+          options={{ presentation: "modal", title: "Formulario contenedor" }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
