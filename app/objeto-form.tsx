@@ -7,22 +7,24 @@ import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import {
-  createContenedor,
-  getContenedorById,
-  updateContenedor,
-  type ContenedorInput,
+  createObjeto,
+  getObjetoById,
+  type ObjetoInput,
+  updateObjeto,
 } from "@/lib/san-alejo-db";
 
-export default function ContenedorFormScreen() {
+export default function ObjetoFormScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{
+    contenedorId?: string;
+    objetoId?: string;
+  }>();
   const colorScheme = useColorScheme();
   const palette = Colors[colorScheme ?? "light"];
-  const isEditing = !!params.id;
+  const isEditing = !!params.objetoId;
 
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [ubicacion, setUbicacion] = useState("");
 
   const inputThemeStyle = {
     borderColor: palette.icon,
@@ -38,64 +40,74 @@ export default function ContenedorFormScreen() {
   };
 
   useEffect(() => {
-    async function loadContenedor() {
-      if (!params.id) {
+    async function loadObjeto() {
+      if (!params.objetoId) {
         return;
       }
 
-      const id = Number(params.id);
+      const id = Number(params.objetoId);
       if (!Number.isFinite(id)) {
         return;
       }
 
-      const existing = await getContenedorById(id);
+      const existing = await getObjetoById(id);
       if (!existing) {
         return;
       }
 
       setNombre(existing.nombre);
       setDescripcion(existing.descripcion);
-      setUbicacion(existing.ubicacion);
     }
 
-    loadContenedor();
-  }, [params.id]);
+    loadObjeto();
+  }, [params.objetoId]);
 
   const onSave = async () => {
-    const input: ContenedorInput = {
+    const input: ObjetoInput = {
       nombre: nombre.trim(),
       descripcion: descripcion.trim(),
-      ubicacion: ubicacion.trim(),
     };
 
-    if (!input.nombre || !input.descripcion || !input.ubicacion) {
+    if (!input.nombre || !input.descripcion) {
       Alert.alert(
         "Campos obligatorios",
-        "Debes completar nombre, descripción y ubicación.",
+        "Debes completar nombre y descripción.",
       );
       return;
     }
 
     if (isEditing) {
-      const id = Number(params.id);
+      const id = Number(params.objetoId);
 
       if (!Number.isFinite(id)) {
-        Alert.alert("Error", "ID de contenedor inválido.");
+        Alert.alert("Error", "ID de objeto inválido.");
         return;
       }
 
-      await updateContenedor(id, input);
-    } else {
-      await createContenedor(input);
+      await updateObjeto(id, input);
+      router.back();
+      return;
     }
 
+    const contenedorId = Number(params.contenedorId);
+    if (!contenedorId) {
+      Alert.alert("Error", "No se encontró el contenedor para este objeto.");
+      return;
+    }
+
+    if (!Number.isFinite(contenedorId)) {
+      Alert.alert("Error", "ID de contenedor inválido.");
+      return;
+    }
+
+    await createObjeto(contenedorId, input);
     router.back();
   };
 
   return (
     <ThemedView style={styles.screen}>
       <ThemedText type="title">
-        {isEditing ? "Editar contenedor" : "Nuevo contenedor"}
+        {isEditing ? "Editar objeto" : "Nuevo objeto"}
       </ThemedText>
 
       <ThemedText style={styles.label}>Nombre</ThemedText>
@@ -103,7 +115,7 @@ export default function ContenedorFormScreen() {
         style={[styles.input, inputThemeStyle]}
         value={nombre}
         onChangeText={setNombre}
-        placeholder="Ej: Caja cocina"
+        placeholder="Ej: Cable HDMI"
         placeholderTextColor={palette.icon}
       />
 
@@ -112,19 +124,10 @@ export default function ContenedorFormScreen() {
         style={[styles.input, styles.multiline, inputThemeStyle]}
         value={descripcion}
         onChangeText={setDescripcion}
-        placeholder="Qué contiene este contenedor"
+        placeholder="Detalle del objeto"
         placeholderTextColor={palette.icon}
         multiline
         textAlignVertical="top"
-      />
-
-      <ThemedText style={styles.label}>Ubicación</ThemedText>
-      <TextInput
-        style={[styles.input, inputThemeStyle]}
-        value={ubicacion}
-        onChangeText={setUbicacion}
-        placeholder="Dónde está guardado"
-        placeholderTextColor={palette.icon}
       />
 
       <Pressable
@@ -132,7 +135,7 @@ export default function ContenedorFormScreen() {
         onPress={onSave}
       >
         <ThemedText type="defaultSemiBold" style={saveButtonTextStyle}>
-          Guardar contenedor
+          Guardar objeto
         </ThemedText>
       </Pressable>
     </ThemedView>

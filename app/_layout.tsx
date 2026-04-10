@@ -28,6 +28,10 @@ export default function RootLayout() {
           name="contenedor-form"
           options={{ presentation: "modal", title: "Formulario contenedor" }}
         />
+        <Stack.Screen
+          name="objeto-form"
+          options={{ presentation: "modal", title: "Formulario objeto" }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
